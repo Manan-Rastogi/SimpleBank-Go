@@ -54,3 +54,9 @@ https://github.com/golang-migrate/migrate/tree/master/cmd/migrate#usage
 ```
 
 
+# Go Test File
+```
+>   Conventionally Test file name ends with test prefix.
+>   Function Name starts with *Test*FUNCTION.
+```
+
