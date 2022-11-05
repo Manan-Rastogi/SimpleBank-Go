@@ -60,3 +60,12 @@ https://github.com/golang-migrate/migrate/tree/master/cmd/migrate#usage
 >   Function Name starts with *Test*FUNCTION.
 ```
 
+
+# ACID
+### Transactions - A single unit of work, often made up of multiple db operations.
+```
+> Atomicity: Either all operations complete successfully or the transaction fails and the db is unchanged.
+> Consistency: The db state must be valid after transaction.All constraints must be satisfied.
+> Isolation: Concurrent transactions must not affect each other.
+> Durability: Data written by successful transaction must be recorded in persistent storage.
+```
