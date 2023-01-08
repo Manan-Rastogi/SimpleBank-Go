@@ -27,7 +27,7 @@ https://github.com/golang-migrate/migrate/tree/master/cmd/migrate#usage
 >   migrate -version
 >   migrate --help
 >   mkdir db/migration, then migrate create -ext sql -dir db/migration -seq init_schema
->   migrating up : migrate -path migration -database "postgresql://root:password@localhost:5432/simple_bank?sslmode=disable" -verbose up
+>   migrating up : migrate -path db/migration -database "postgresql://root:password@localhost:5432/simple_bank?sslmode=disable" -verbose up
 
 ```
 
