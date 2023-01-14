@@ -1,3 +1,4 @@
+// Implementing Transaction in Golang
 package db
 
 import (
@@ -7,6 +8,8 @@ import (
 )
 
 // Store provides all functions to execute db queries and transactions
+// Queries struct doesn’t support transaction. We have to extend its functionality
+// by embedding it inside the Store struct. This is called a composition,
 type Store struct {
 	*Queries
 	db *sql.DB
@@ -20,7 +23,7 @@ func NewStore(db *sql.DB) *Store {
 	}
 }
 
-// executes a function within a database transaction
+// executes a function within a database transaction.
 func (store *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
 	// BEGIN TRANSACTION
 	tx, err := store.db.BeginTx(ctx, nil)
@@ -30,6 +33,7 @@ func (store *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
 
 	// QUERIES FOR TRANSACTION
 	q := New(tx)
+
 	// EXECUTE QUERIES
 	err = fn(q)
 	if err != nil {
@@ -60,7 +64,7 @@ type TransferTxResult struct {
 	ToEntry     Entry    `json:"to_entry"`
 }
 
-var txKey = struct{}{}
+// var txKey = struct{}{}
 
 // Performs a money transfer from 1 account to another.
 // It creates a transfer record, add account entries and update account's balance within a single db transaction.
@@ -70,51 +74,52 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 	err := store.execTx(ctx, func(q *Queries) error {
 		var err error
 
-		txName := ctx.Value(txKey)
-		fmt.Println(txName, "create transfer")
+		// txName := ctx.Value(txKey)
 		// 1. CREATE A TRANSFER RECORD.
-		result.Transfer, err =  q.CreateTransfer(ctx, CreateTransferParams{
+		// fmt.Println(txName, "create transfer")
+		result.Transfer, err = q.CreateTransfer(ctx, CreateTransferParams{
 			FromAccountID: arg.FromAccountId,
-			ToAccountID: arg.ToAccountId,
-			Amount: arg.Amount,
+			ToAccountID:   arg.ToAccountId,
+			Amount:        arg.Amount,
 		})
 		if err != nil {
 			return err
 		}
 
-		fmt.Println(txName, "create entry 1")
 		// 2. ADD ACCOUNT ENTRIES
+		// fmt.Println(txName, "create entry 1")
 		result.FromEntry, err = q.CreateEntry(ctx, CreateEntryParams{
 			AccountID: arg.FromAccountId,
-			Amount: -arg.Amount,
+			Amount:    -arg.Amount,
 		})
 		if err != nil {
 			return err
 		}
 
-		fmt.Println(txName, "create entry 2")
+		// fmt.Println(txName, "create entry 2")
 		result.ToEntry, err = q.CreateEntry(ctx, CreateEntryParams{
 			AccountID: arg.ToAccountId,
-			Amount: arg.Amount,
+			Amount:    arg.Amount,
 		})
 		if err != nil {
 			return err
 		}
 
-		fmt.Println(txName, "get account 1")
 		//  3. Update Account Balance
-		fromAccountId, err := q.GetAccountForUpdate(ctx, arg.FromAccountId)
+		// fmt.Println(txName, "get account 1")
+
+		/*fromAccountId, err := q.GetAccountForUpdate(ctx, arg.FromAccountId)
 		if err != nil {
 			return err
 		}
 
-		fmt.Println(txName, "get account 2")
+		// fmt.Println(txName, "get account 2")
 		toAccountId, err := q.GetAccountForUpdate(ctx, arg.ToAccountId)
 		if err != nil {
 			return err
 		}
 
-		fmt.Println(txName, "update account 1")
+		// fmt.Println(txName, "update account 1")
 		result.FromAccount, err =  q.UpdateAccount(ctx, UpdateAccountParams{
 			ID: arg.FromAccountId,
 			Balance: fromAccountId.Balance - arg.Amount,
@@ -123,18 +128,32 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 			return err
 		}
 
-		fmt.Println(txName, "update account 2" )
+		// fmt.Println(txName, "update account 2" )
 		result.ToAccount, err =  q.UpdateAccount(ctx, UpdateAccountParams{
 			ID: arg.ToAccountId,
 			Balance: toAccountId.Balance + arg.Amount,
 		})
 		if err != nil {
 			return err
+		}*/
+
+		// Doing avove tasks in single query..
+		result.FromAccount, err = q.AddAccountBalance(ctx, AddAccountBalanceParams{
+			ID:     arg.FromAccountId,
+			Amount: -arg.Amount,
+		})
+		if err != nil {
+			return err
 		}
 
+		result.ToAccount, err = q.AddAccountBalance(ctx, AddAccountBalanceParams{
+			ID:     arg.ToAccountId,
+			Amount: arg.Amount,
+		})
+		if err != nil {
+			return err
+		}
 
-
-		
 		return nil
 	})
 

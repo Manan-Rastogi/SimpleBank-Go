@@ -9,6 +9,7 @@ import (
 )
 
 func TestTransferTx(t *testing.T) {
+	fmt.Println("Starting Test!!")
 	store := NewStore(testDB)
 
 	account1 := createRandomAccount(t)
@@ -23,10 +24,10 @@ func TestTransferTx(t *testing.T) {
 	results := make(chan TransferTxResult)
 
 	for i := 0; i < n; i++ {
-		txName := fmt.Sprintf("tx %d", i+1)
+		// txName := fmt.Sprintf("tx %d", i+1)   // Debugging Deadlock  -  Naming Transactions to chk which one is running and blocking
 		go func() {
-			ctx := context.WithValue(context.Background(), txKey, txName)
-			result, err := store.TransferTx(ctx, TransferTxParams{
+			// ctx := context.WithValue(context.Background(), txKey, txName)
+			result, err := store.TransferTx(context.Background(), TransferTxParams{
 				FromAccountId: account1.ID,
 				ToAccountId:   account2.ID,
 				Amount:        amount,
@@ -99,10 +100,10 @@ func TestTransferTx(t *testing.T) {
 
 		k := int(diff1 / amount)
 		require.True(t, k >= 1 && k <= n)
-		fmt.Printf("existed: %v\n", existed)
-		fmt.Printf("k: %v\n", k)
+		// fmt.Printf("k: %v\n", k)
 		require.NotContains(t, existed, k)
 		existed[k] = true
+		// fmt.Printf("existed: %v\n", existed)
 	}
 
 	// Check final updated balance
@@ -114,6 +115,6 @@ func TestTransferTx(t *testing.T) {
 
 	fmt.Println(">> after : ", updatedAccount1.Balance, updatedAccount2.Balance)
 
-	require.Equal(t, account1.Balance - (int64(n) * amount), updatedAccount1.Balance)
-	require.Equal(t, account2.Balance + (int64(n) * amount), updatedAccount2.Balance)
+	require.Equal(t, account1.Balance-(int64(n)*amount), updatedAccount1.Balance)
+	require.Equal(t, account2.Balance+(int64(n)*amount), updatedAccount2.Balance)
 }
