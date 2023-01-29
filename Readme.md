@@ -65,7 +65,18 @@ https://github.com/golang-migrate/migrate/tree/master/cmd/migrate#usage
 ### Transactions - A single unit of work, often made up of multiple db operations.
 ```
 > Atomicity: Either all operations complete successfully or the transaction fails and the db is unchanged.
+
 > Consistency: The db state must be valid after transaction.All constraints must be satisfied.
+
 > Isolation: Concurrent transactions must not affect each other.
+
 > Durability: Data written by successful transaction must be recorded in persistent storage.
 ```
+
+# TDD
+```
+Test Driven Development - we write test first and then program/update code. Until the code passes all the test cases that we have written, we will keep updatng the code. This approach help us to deal with the deadlocks more effectively that occur during concurrent programming.
+```
+
+
+
