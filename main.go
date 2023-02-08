@@ -6,17 +6,19 @@ import (
 
 	"github.com/Manan-Rastogi/simplebank/api"
 	db "github.com/Manan-Rastogi/simplebank/db/sqlc"
+	"github.com/Manan-Rastogi/simplebank/util"
 	_ "github.com/lib/pq"
 )
 
-const (
-	dbDriver      = "postgres"
-	dbSource      = "postgresql://root:password@localhost:5432/simple_bank?sslmode=disable"
-	serverAddress = "127.0.0.1:8080"
-)
+
 
 func main() {
-	conn, err := sql.Open(dbDriver, dbSource)
+	config, err := util.LoadConfig(".")
+	if err != nil{
+		log.Fatal("cannot load config: ", err.Error())
+	}
+
+	conn, err := sql.Open(config.DbDriver, config.DbSource)
 	if err != nil {
 		log.Fatal("cannot establish connection to db : ", err.Error())
 	}
@@ -24,7 +26,7 @@ func main() {
 	store := db.NewStore(conn)
 	server := api.NewServer(store)
 
-	err = server.Start(serverAddress)
+	err = server.Start(config.ServerAddress)
 	if err != nil{
 		log.Fatal("cannot start server: ", err.Error())
 	}
